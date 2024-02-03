@@ -7,6 +7,7 @@ import * as bcrypt from 'bcrypt'
 export class UserService {
     constructor(private readonly prismaService: PrismaService) { }
 
+    // Сохранение пользователя
     async save(user: Partial<User>) {
         const hashPassword = this.hashPassword(user.password)
         return await this.prismaService.user.create({
@@ -17,26 +18,27 @@ export class UserService {
         })
     }
 
+    // Поиск пользователя по id или login
     async findOne(idOrLogin: string) {
         const pattern = /^[0-9]+$/;
         return await this.prismaService.user.findFirst({
             where: {
-                OR: [{ login: idOrLogin }, { id: pattern.test(idOrLogin)? Number(idOrLogin) : 1 }],
+                OR: [{ login: idOrLogin }, { id: pattern.test(idOrLogin) ? Number(idOrLogin) : 1 }],
             },
         })
-        
     }
 
+    // Удаление пользователя
     async delete(id: number) {
         return await this.prismaService.user.delete({ where: { id } })
     }
 
+    // Удаление всех Refresh токенов
     removeAllRefresh() {
-        // const deleteRefresh = this.prismaService.token.deleteMany()
-        // await this.prismaService.$transaction([deleteRefresh])
         return this.prismaService.token.deleteMany()
     }
 
+    // Хэширование пароля
     private hashPassword(password: string) {
         return bcrypt.hashSync(password, bcrypt.genSaltSync(10))
     }

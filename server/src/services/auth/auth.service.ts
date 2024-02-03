@@ -19,15 +19,7 @@ export class AuthService {
         private readonly prismaService: PrismaService
     ) { }
 
-    async refreshTokens(refreshToken: string): Promise<Tokens> {
-        const token = await this.prismaService.token.delete({where: {token: refreshToken}})
-        if(!token) throw new UnauthorizedException()
-
-
-        const user = await this.userService.findOne(String(token.userId))
-        return this.generateTokens(user)
-    }
-
+    // Регистрация пользователя
     async register(dto: RegisterUserDto) {
         const user: User = await this.userService.findOne(dto.login).catch(err => {
             this.logger.error(err)
@@ -40,17 +32,30 @@ export class AuthService {
         })
     }
 
+    // Авторизация пользователя
     async login(dto: LogiUserDto): Promise<Tokens> {
         const user: User = await this.userService.findOne(dto.login).catch(err => {
             this.logger.error(err)
             return null
         })
-
         if (!user || !compareSync(dto.password, user.password)) throw new UnauthorizedException('Не верный логин или пароль') // сравнивает два поля
-
         return this.generateTokens(user)
     }
 
+    // ------------------------------------------ Tokens ------------------------------------------ //
+
+    // Если refresh токен есть в бд, удаляет его и генерирует новую пару accsess и refresh
+    async refreshTokens(refreshToken: string): Promise<Tokens> {
+        console.log(refreshToken);
+
+        const token = await this.prismaService.token.delete({ where: { token: refreshToken } })
+        if (!token) throw new UnauthorizedException()
+
+        const user = await this.userService.findOne(String(token.userId))
+        return this.generateTokens(user)
+    }
+
+    // Генерация пары accsess и refresh токенов
     private async generateTokens(user: User): Promise<Tokens> {
         const accessToken = 'Bearer ' + this.jwtService.sign({
             id: user.id,
@@ -59,9 +64,9 @@ export class AuthService {
         })
         const refreshToken = await this.getRefreshToken(user.id)
         return { accessToken, refreshToken }
-
     }
 
+    // Генерация refresh токена
     private async getRefreshToken(userId: number): Promise<Token> {
         return this.prismaService.token.create({
             data: {

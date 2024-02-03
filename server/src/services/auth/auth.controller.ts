@@ -1,9 +1,9 @@
-import { BadRequestException, Body, Controller, Get, HttpStatus, Post, Res, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, HttpStatus, Post, Req, Res, UnauthorizedException } from '@nestjs/common';
 import { RegisterUserDto } from './dto/register.dto';
 import { LogiUserDto } from './dto/login.dto';
 import { AuthService } from './auth.service';
 import { Tokens } from './interfaces/token-interface';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { Cookie } from '@common/decorators/cookies.decorator';
 
@@ -24,23 +24,27 @@ export class AuthController {
     }
 
     @Post('login')
-    async login(@Body() dto: LogiUserDto, @Res() res: Response) {
+    async login(@Body() dto: LogiUserDto, @Res() res: Response, @Req() req: Request) {
+        const agent = req.headers['user-agent']
+
         const tokens = await this.authService.login(dto)
         if (!tokens) throw new BadRequestException('Не получается залогиниться с введенными данными')
         this.setRefreshTokenToCookie(tokens, res)
     }
 
+    // ------------------------------------------ Tokens ------------------------------------------ //
     @Get('refresh-tokens')
-    async refreshToken(@Cookie(REFRESH_TOKEN) refreshToken: string, res: Response) {
-        if(refreshToken) throw new UnauthorizedException()
+    async refreshToken(@Cookie(REFRESH_TOKEN) refreshToken: string, @Res() res: Response) {
+        if (!refreshToken || typeof refreshToken !== 'string') throw new UnauthorizedException()
+        console.log(refreshToken)
+
         const tokens = await this.authService.refreshTokens(refreshToken)
         if (!tokens) throw new UnauthorizedException()
         this.setRefreshTokenToCookie(tokens, res)
-
     }
 
-    private setRefreshTokenToCookie(tokens: Tokens, @Res() res: Response) {
-        if(!tokens) throw new UnauthorizedException()
+    private setRefreshTokenToCookie(tokens: Tokens, res: Response) {
+        if (!tokens) throw new UnauthorizedException()
         res.cookie(REFRESH_TOKEN, tokens.refreshToken.token, {
             httpOnly: true,
             sameSite: 'lax', // все запросы должны отправляться с того же сайта, где мы находимся    
@@ -48,7 +52,6 @@ export class AuthController {
             secure: this.configService.get('NODE_ENV', 'development') === 'production',
             path: '/' // путь по которому будут доступны cookie
         })
-        res.status(HttpStatus.CREATED).json({accessToken: tokens.accessToken})
-
+        res.status(HttpStatus.CREATED).json({ accessToken: tokens.accessToken })
     }
 }
