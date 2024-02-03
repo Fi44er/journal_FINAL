@@ -1,6 +1,7 @@
 import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { Public } from '@common/decorators/public.decorator';
 
 @Controller('user')
 export class UserController {
@@ -15,8 +16,9 @@ export class UserController {
     async findOneUser(@Param('idOrLogin') idOrLogin: string) {
         return await this.userService.findOne(idOrLogin)
     }
-    
-    @Delete('delete-all-refresh') 
+
+    @Public()
+    @Delete('delete-all-refresh')
     async deleteAllRefresh() {
         return await this.userService.removeAllRefresh()
     }
@@ -26,5 +28,5 @@ export class UserController {
         return this.userService.delete(Number(id))
     }
 
-    
+
 }

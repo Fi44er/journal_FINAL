@@ -7,9 +7,11 @@ import { Request, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { Cookie } from '@common/decorators/cookies.decorator';
 import { UserAgent } from '@common/decorators/user-agent.decorator';
+import { Public } from '@common/decorators/public.decorator';
 
 const REFRESH_TOKEN = 'refreshtoken'
 
+@Public()
 @Controller('auth')
 export class AuthController {
     constructor(
