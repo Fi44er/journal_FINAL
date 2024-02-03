@@ -6,6 +6,7 @@ import { Tokens } from './interfaces/token-interface';
 import { Request, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { Cookie } from '@common/decorators/cookies.decorator';
+import { UserAgent } from '@common/decorators/user-agent.decorator';
 
 const REFRESH_TOKEN = 'refreshtoken'
 
@@ -24,21 +25,20 @@ export class AuthController {
     }
 
     @Post('login')
-    async login(@Body() dto: LogiUserDto, @Res() res: Response, @Req() req: Request) {
-        const agent = req.headers['user-agent']
+    async login(@Body() dto: LogiUserDto, @Res() res: Response, @UserAgent() agent: string) {
 
-        const tokens = await this.authService.login(dto)
+        const tokens = await this.authService.login(dto, agent)
         if (!tokens) throw new BadRequestException('Не получается залогиниться с введенными данными')
         this.setRefreshTokenToCookie(tokens, res)
     }
 
     // ------------------------------------------ Tokens ------------------------------------------ //
     @Get('refresh-tokens')
-    async refreshToken(@Cookie(REFRESH_TOKEN) refreshToken: string, @Res() res: Response) {
+    async refreshToken(@Cookie(REFRESH_TOKEN) refreshToken: string, @Res() res: Response, @UserAgent() agent: string) {
         if (!refreshToken || typeof refreshToken !== 'string') throw new UnauthorizedException()
         console.log(refreshToken)
 
-        const tokens = await this.authService.refreshTokens(refreshToken)
+        const tokens = await this.authService.refreshTokens(refreshToken, agent)
         if (!tokens) throw new UnauthorizedException()
         this.setRefreshTokenToCookie(tokens, res)
     }
