@@ -2,7 +2,7 @@ import { BadRequestException, Body, Controller, Get, HttpStatus, Post, Req, Res,
 import { RegisterUserDto } from './dto/register.dto';
 import { LogiUserDto } from './dto/login.dto';
 import { AuthService } from './auth.service';
-import { Tokens } from './interfaces/token-interface';
+import { Tokens } from './interfaces/token.interface';
 import { Request, Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { Cookie } from '@common/decorators/cookies.decorator';

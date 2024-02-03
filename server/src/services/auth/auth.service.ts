@@ -2,7 +2,7 @@ import { ConflictException, Injectable, Logger, UnauthorizedException } from '@n
 import { RegisterUserDto } from './dto/register.dto';
 import { UserService } from '../user/user.service';
 import { LogiUserDto } from './dto/login.dto';
-import { Tokens } from './interfaces/token-interface';
+import { Tokens } from './interfaces/token.interface';
 import { compareSync } from 'bcrypt';
 import { Token, User } from '@prisma/client';
 import { JwtService } from '@nestjs/jwt';
