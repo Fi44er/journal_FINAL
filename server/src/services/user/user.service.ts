@@ -23,14 +23,14 @@ export class UserService {
         const pattern = /^[0-9]+$/;
         return await this.prismaService.user.findFirst({
             where: {
-                OR: [{ login: idOrLogin }, { id: pattern.test(idOrLogin) ? Number(idOrLogin) : 1 }],
+                OR: [{ login: String(idOrLogin) }, { id: pattern.test(idOrLogin) ? Number(idOrLogin) : 1 }],
             },
         })
     }
 
     // Удаление пользователя
     async delete(id: number) {
-        return await this.prismaService.user.delete({ where: { id } })
+        return await this.prismaService.user.delete({ where: { id }, select: { id: true } })
     }
 
     // Удаление всех Refresh токенов
