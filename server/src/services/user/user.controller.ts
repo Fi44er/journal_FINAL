@@ -7,17 +7,24 @@ export class UserController {
     constructor(private readonly userService: UserService) { }
 
     @Post()
-    createUser(@Body() dto: CreateUserDto) {
-        return this.userService.save(dto)
+    async createUser(@Body() dto: CreateUserDto) {
+        return await this.userService.save(dto)
     }
 
-    @Get(':login')
-    findOneUser(@Param('login') login: string) {
-        return this.userService.findOne(login)
+    @Get(':idOrLogin')
+    async findOneUser(@Param('idOrLogin') idOrLogin: string) {
+        return await this.userService.findOne(idOrLogin)
+    }
+    
+    @Delete('delete-all-refresh') 
+    async deleteAllRefresh() {
+        return await this.userService.removeAllRefresh()
     }
 
     @Delete(':id')
     deleteUser(@Param('id') id: number) {
         return this.userService.delete(Number(id))
     }
+
+    
 }

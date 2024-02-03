@@ -19,6 +19,15 @@ export class AuthService {
         private readonly prismaService: PrismaService
     ) { }
 
+    async refreshTokens(refreshToken: string): Promise<Tokens> {
+        const token = await this.prismaService.token.delete({where: {token: refreshToken}})
+        if(!token) throw new UnauthorizedException()
+
+
+        const user = await this.userService.findOne(String(token.userId))
+        return this.generateTokens(user)
+    }
+
     async register(dto: RegisterUserDto) {
         const user: User = await this.userService.findOne(dto.login).catch(err => {
             this.logger.error(err)
@@ -39,14 +48,18 @@ export class AuthService {
 
         if (!user || !compareSync(dto.password, user.password)) throw new UnauthorizedException('Не верный логин или пароль') // сравнивает два поля
 
+        return this.generateTokens(user)
+    }
+
+    private async generateTokens(user: User): Promise<Tokens> {
         const accessToken = 'Bearer ' + this.jwtService.sign({
             id: user.id,
             login: user.login,
             roles: user.roles
         })
         const refreshToken = await this.getRefreshToken(user.id)
-
         return { accessToken, refreshToken }
+
     }
 
     private async getRefreshToken(userId: number): Promise<Token> {

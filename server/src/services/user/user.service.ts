@@ -7,9 +7,9 @@ import * as bcrypt from 'bcrypt'
 export class UserService {
     constructor(private readonly prismaService: PrismaService) { }
 
-    save(user: Partial<User>) {
+    async save(user: Partial<User>) {
         const hashPassword = this.hashPassword(user.password)
-        return this.prismaService.user.create({
+        return await this.prismaService.user.create({
             data: {
                 login: user.login,
                 password: hashPassword
@@ -17,12 +17,24 @@ export class UserService {
         })
     }
 
-    findOne(login: string) {
-        return this.prismaService.user.findFirst({ where: { login } })
+    async findOne(idOrLogin: string) {
+        const pattern = /^[0-9]+$/;
+        return await this.prismaService.user.findFirst({
+            where: {
+                OR: [{ login: idOrLogin }, { id: pattern.test(idOrLogin)? Number(idOrLogin) : 1 }],
+            },
+        })
+        
     }
 
-    delete(id: number) {
-        return this.prismaService.user.delete({ where: { id } })
+    async delete(id: number) {
+        return await this.prismaService.user.delete({ where: { id } })
+    }
+
+    removeAllRefresh() {
+        // const deleteRefresh = this.prismaService.token.deleteMany()
+        // await this.prismaService.$transaction([deleteRefresh])
+        return this.prismaService.token.deleteMany()
     }
 
     private hashPassword(password: string) {
