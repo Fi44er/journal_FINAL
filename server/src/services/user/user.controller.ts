@@ -1,8 +1,9 @@
-import { Body, ClassSerializerInterceptor, Controller, Delete, Get, Param, Post, UseInterceptors } from '@nestjs/common';
+import { ClassSerializerInterceptor, Controller, Delete, Get, Param, Post, UseInterceptors } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto } from './dto/create-user.dto';
-import { Public } from '@common/decorators/public.decorator';
+
 import { UserResponse } from './responses/user.response';
+import { CurrentUser } from '@common/decorators/current-user.decorator';
+import { jwtPayload } from '../auth/interfaces/jwt-payload.interface';
 
 @Controller('user')
 export class UserController {
@@ -21,7 +22,7 @@ export class UserController {
     }
 
     @Delete(':id')
-    async deleteUser(@Param('id') id: number) {
-        return this.userService.delete(Number(id))
+    async deleteUser(@Param('id') id: number, @CurrentUser() user: jwtPayload) {
+        return this.userService.delete(Number(id), user)
     }
 }

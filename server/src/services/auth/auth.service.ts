@@ -69,7 +69,7 @@ export class AuthService {
     // Генерация refresh токена
     private async getRefreshToken(userId: number, agent: string): Promise<Token> {
         const _token = await this.prismaService.token.findFirst({ where: { userId, userAgent: agent } })
-        const token = _token?.token ?? ''
+        const token = _token?.token ?? null
         return this.prismaService.token.upsert({
             where: { token },
             update: {

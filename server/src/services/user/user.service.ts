@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { User } from '@prisma/client';
+import { ForbiddenException, Injectable } from '@nestjs/common';
+import { Role, User } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt'
+import { jwtPayload } from '../auth/interfaces/jwt-payload.interface';
 
 @Injectable()
 export class UserService {
@@ -29,7 +30,8 @@ export class UserService {
     }
 
     // Удаление пользователя
-    async delete(id: number) {
+    async delete(id: number, user: jwtPayload) {
+        if (user.id !== id && !user.roles.includes(Role.ADMIN)) throw new ForbiddenException()
         return await this.prismaService.user.delete({ where: { id }, select: { id: true } })
     }
 
