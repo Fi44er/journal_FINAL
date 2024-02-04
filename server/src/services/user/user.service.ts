@@ -1,15 +1,17 @@
-import { Injectable } from '@nestjs/common';
-import { User } from '@prisma/client';
+import { ForbiddenException, Injectable } from '@nestjs/common';
+import { Role, User } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt'
+import { jwtPayload } from '../auth/interfaces/jwt-payload.interface';
 
 @Injectable()
 export class UserService {
     constructor(private readonly prismaService: PrismaService) { }
 
-    save(user: Partial<User>) {
+    // Сохранение пользователя
+    async save(user: Partial<User>) {
         const hashPassword = this.hashPassword(user.password)
-        return this.prismaService.user.create({
+        return await this.prismaService.user.create({
             data: {
                 login: user.login,
                 password: hashPassword
@@ -17,14 +19,32 @@ export class UserService {
         })
     }
 
-    findOne(login: string) {
-        return this.prismaService.user.findFirst({ where: { login } })
+    // Поиск пользователя по id или login
+    async findOne(idOrLogin: string) {
+        const pattern = /^[0-9]+$/;
+        console.log(idOrLogin);
+
+        return await this.prismaService.user.findFirst({
+            where: {
+                OR: [
+                    pattern.test(idOrLogin) ? { id: Number(idOrLogin) } : { login: String(idOrLogin) }
+                ]
+            }
+        })
     }
 
-    delete(id: number) {
-        return this.prismaService.user.delete({ where: { id } })
+    // Удаление пользователя
+    async delete(id: number, user: jwtPayload) {
+        if (user.id !== id && !user.roles.includes(Role.ADMIN)) throw new ForbiddenException()
+        return await this.prismaService.user.delete({ where: { id }, select: { id: true } })
     }
 
+    // Удаление всех Refresh токенов
+    removeAllRefresh() {
+        return this.prismaService.token.deleteMany()
+    }
+
+    // Хэширование пароля
     private hashPassword(password: string) {
         return bcrypt.hashSync(password, bcrypt.genSaltSync(10))
     }

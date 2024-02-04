@@ -1,23 +1,28 @@
-import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
+import { ClassSerializerInterceptor, Controller, Delete, Get, Param, Post, UseInterceptors } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto } from './dto/create-user.dto';
+
+import { UserResponse } from './responses/user.response';
+import { CurrentUser } from '@common/decorators/current-user.decorator';
+import { jwtPayload } from '../auth/interfaces/jwt-payload.interface';
 
 @Controller('user')
 export class UserController {
     constructor(private readonly userService: UserService) { }
 
-    @Post()
-    createUser(@Body() dto: CreateUserDto) {
-        return this.userService.save(dto)
+    @UseInterceptors(ClassSerializerInterceptor)
+    @Get(':idOrLogin')
+    async findOneUser(@Param('idOrLogin') idOrLogin: string) {
+        const user = await this.userService.findOne(idOrLogin)
+        return new UserResponse(user)
     }
 
-    @Get(':login')
-    findOneUser(@Param('login') login: string) {
-        return this.userService.findOne(login)
+    @Delete('delete-all-refresh')
+    async deleteAllRefresh() {
+        return await this.userService.removeAllRefresh()
     }
 
     @Delete(':id')
-    deleteUser(@Param('id') id: number) {
-        return this.userService.delete(Number(id))
+    async deleteUser(@Param('id') id: number, @CurrentUser() user: jwtPayload) {
+        return this.userService.delete(Number(id), user)
     }
 }
