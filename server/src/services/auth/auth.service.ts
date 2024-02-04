@@ -25,6 +25,8 @@ export class AuthService {
             this.logger.error(err)
             return null
         })
+        console.log("auth service");
+
         if (user) throw new ConflictException('Пользователь с таким login уже существует') // сравнивает два поля
         return this.userService.save(dto).catch(err => {
             this.logger.error(err)
@@ -46,8 +48,6 @@ export class AuthService {
 
     // Если refresh токен есть в бд, удаляет его и генерирует новую пару accsess и refresh
     async refreshTokens(refreshToken: string, agent: string): Promise<Tokens> {
-        console.log(refreshToken);
-
         const token = await this.prismaService.token.delete({ where: { token: refreshToken } })
         if (!token) throw new UnauthorizedException()
 
@@ -83,5 +83,11 @@ export class AuthService {
                 userAgent: agent
             }
         })
+    }
+
+    // Удаление refresh токена
+
+    deleteRefreshTokeb(token: string) {
+        return this.prismaService.token.delete({ where: { token } })
     }
 }

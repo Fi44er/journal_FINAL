@@ -22,10 +22,14 @@ export class UserService {
     // Поиск пользователя по id или login
     async findOne(idOrLogin: string) {
         const pattern = /^[0-9]+$/;
+        console.log(idOrLogin);
+
         return await this.prismaService.user.findFirst({
             where: {
-                OR: [{ login: String(idOrLogin) }, { id: pattern.test(idOrLogin) ? Number(idOrLogin) : 1 }],
-            },
+                OR: [
+                    pattern.test(idOrLogin) ? { id: Number(idOrLogin) } : { login: String(idOrLogin) }
+                ]
+            }
         })
     }
 
