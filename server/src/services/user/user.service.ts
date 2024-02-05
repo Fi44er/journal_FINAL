@@ -1,12 +1,20 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { ForbiddenException, Inject, Injectable } from '@nestjs/common';
 import { Role, User } from '@prisma/client';
 import { PrismaService } from 'src/prisma/prisma.service';
 import * as bcrypt from 'bcrypt'
 import { jwtPayload } from '../auth/interfaces/jwt-payload.interface';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
+import { ConfigService } from '@nestjs/config';
+import { convertToSecondsUtil } from '@common/utils/convert-to-seconds';
 
 @Injectable()
 export class UserService {
-    constructor(private readonly prismaService: PrismaService) { }
+    constructor(
+        private readonly consigService: ConfigService,
+        private readonly prismaService: PrismaService,
+        @Inject(CACHE_MANAGER) private cacheManager: Cache
+    ) { }
 
     // Сохранение пользователя
     async save(user: Partial<User>) {
@@ -20,22 +28,33 @@ export class UserService {
     }
 
     // Поиск пользователя по id или login
-    async findOne(idOrLogin: string) {
+    async findOne(idOrLogin: string, isReset = false) {
         const pattern = /^[0-9]+$/;
-        console.log(idOrLogin);
+        if (isReset) {
+            await this.cacheManager.del(idOrLogin)
+        }
+        const user = await this.cacheManager.get<User>(idOrLogin)
+        if (!user) {
+            const userByDb = await this.prismaService.user.findFirst({
+                where: {
+                    OR: [
+                        pattern.test(idOrLogin) ? { id: Number(idOrLogin) } : { login: String(idOrLogin) }
+                    ]
+                }
+            })
+            if (!userByDb) return null
 
-        return await this.prismaService.user.findFirst({
-            where: {
-                OR: [
-                    pattern.test(idOrLogin) ? { id: Number(idOrLogin) } : { login: String(idOrLogin) }
-                ]
-            }
-        })
+
+            await this.cacheManager.set(idOrLogin, userByDb, convertToSecondsUtil(this.consigService.get('JWT_EXP')))
+            return userByDb
+        }
+        return user
     }
 
     // Удаление пользователя
     async delete(id: number, user: jwtPayload) {
         if (user.id !== id && !user.roles.includes(Role.ADMIN)) throw new ForbiddenException()
+        await Promise.all([this.cacheManager.del(String(id)), this.cacheManager.del(user.login)])
         return await this.prismaService.user.delete({ where: { id }, select: { id: true } })
     }
 

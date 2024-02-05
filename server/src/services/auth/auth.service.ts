@@ -36,7 +36,7 @@ export class AuthService {
 
     // Авторизация пользователя
     async login(dto: LogiUserDto, agent: string): Promise<Tokens> {
-        const user: User = await this.userService.findOne(dto.login).catch(err => {
+        const user: User = await this.userService.findOne(dto.login, true).catch(err => {
             this.logger.error(err)
             return null
         })
