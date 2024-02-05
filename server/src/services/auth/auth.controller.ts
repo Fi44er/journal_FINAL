@@ -1,4 +1,4 @@
-import { BadRequestException, Body, ClassSerializerInterceptor, Controller, Get, HttpStatus, Post, Res, UnauthorizedException, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, ClassSerializerInterceptor, Controller, Get, HttpStatus, Post, Res, UnauthorizedException, UseGuards, UseInterceptors } from '@nestjs/common';
 import { RegisterUserDto } from './dto/register.dto';
 import { LogiUserDto } from './dto/login.dto';
 import { AuthService } from './auth.service';
@@ -9,6 +9,11 @@ import { Cookie } from '@common/decorators/cookies.decorator';
 import { UserAgent } from '@common/decorators/user-agent.decorator';
 import { Public } from '@common/decorators/public.decorator';
 import { UserResponse } from '../user/responses/user.response';
+import { CurrentUser } from '@common/decorators/current-user.decorator';
+import { jwtPayload } from './interfaces/jwt-payload.interface';
+import { RolesGuard } from './guards/role.guard';
+import { Roles } from '@common/decorators';
+import { Role } from '@prisma/client';
 
 const REFRESH_TOKEN = 'refreshtoken'
 
@@ -63,5 +68,14 @@ export class AuthController {
             path: '/' // путь по которому будут доступны cookie
         })
         res.status(HttpStatus.CREATED).json({ accessToken: tokens.accessToken })
+    }
+
+    // ------------------------------------------ Test Role------------------------------------------ //
+
+    @UseGuards(RolesGuard)
+    @Roles(Role.ADMIN)
+    @Get()
+    me(@CurrentUser() user: jwtPayload) {
+        return user
     }
 }
