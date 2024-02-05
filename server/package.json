@@ -32,6 +32,7 @@
     "@types/bcrypt": "^5.0.2",
     "@types/cookie-parser": "^1.4.6",
     "@types/uuid": "^9.0.8",
+    "@vercel/node": "^3.0.17",
     "bcrypt": "^5.1.1",
     "cache-manager": "^5.4.0",
     "class-transformer": "^0.5.1",
