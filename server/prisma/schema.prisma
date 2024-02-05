@@ -10,16 +10,24 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// ---------------------- User Table ----------------------
 model User {
-  id       Int     @id @default(autoincrement())
-  login    String  @unique
-  password String
-  roles    Role[]  @default([TEACHER])
-  Token    Token[]
+  id          Int     @id @default(autoincrement())
+  login       String  @unique
+  password    String
+  roles       Role[]  @default([TEACHER])
+  Token       Token[]
+  Performance Performance[]
 
   @@map("users")
 }
 
+enum Role {
+  TEACHER
+  ADMIN
+}
+
+// ---------------------- Token Table ----------------------
 model Token {
   token     String   @unique
   exp       DateTime
@@ -30,7 +38,63 @@ model Token {
   @@map("tokens")
 }
 
-enum Role {
-  TEACHER
-  ADMIN
+// ---------------------- Class Table ----------------------
+model Class {
+  id           Int @id @default(autoincrement())
+  number_class Int
+  letter_class String
+  Student      Student[]
+}
+
+// ---------------------- Student Table ----------------------
+model Student {
+  id      Int    @id @default(autoincrement())
+  fio     String
+  class   Class  @relation(fields: [classId], references: [id])
+  classId Int
+}
+
+// ---------------------- Subject Table ----------------------
+model Subject {
+  id     Int      @id @default(autoincrement())
+  name   String
+  Topic  Topic[]
+  Lesson Lesson[]
+}
+
+// ---------------------- Topics Table ----------------------
+model Topic {
+  id         Int      @id @default(autoincrement())
+  subject    Subject  @relation(fields: [subjectId], references: [id])
+  subjectId  Int
+  name       String
+  Lesson     Lesson[]
+}
+
+// ---------------------- Lesson Table ----------------------
+model Lesson {
+  id          Int           @id @default(autoincrement())
+  topic       Topic         @relation(fields: [topicId], references: [id])
+  topicId     Int     
+  subject     Subject       @relation(fields: [subjectId], references: [id])
+  subjectId   Int
+  lesson_date DateTime
+  Performance Performance[]
+}
+
+// ---------------------- Perfomance Table ----------------------
+model Performance {
+  id                Int    @id @default(autoincrement())
+  student_id        Int
+  user              User   @relation(fields: [teacherId], references: [id])
+  teacherId         Int
+  lesson            Lesson @relation(fields: [lessonId], references: [id])
+  lessonId          Int
+  attendance_status Status
+}
+
+enum Status {
+  DELAY    // опоздпние
+  ABSENCE  // отсутствие
+  PRESENCE // присутствие
 }
