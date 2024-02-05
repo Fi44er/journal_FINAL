@@ -1,7 +1,9 @@
 {
     "version": 2,
     "env": {
-        "DATABASE_URL": "postgresql://Fi44er:28DevuUZACNM@ep-proud-resonance-a5tp4np3.us-east-2.aws.neon.tech/journal?sslmode=require"
+        "DATABASE_URL": "@db_uri",
+        "JWT_SECRET": "@secret",
+        "JWT_EXP": "@exp"
     },
     "builds": [
         {
