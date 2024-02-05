@@ -1,8 +1,11 @@
+import { ApiProperty } from "@nestjs/swagger";
 import { $Enums, User } from "@prisma/client";
 import { Exclude } from "class-transformer";
 
 export class UserResponse implements User {
+    @ApiProperty()
     id: number;
+    @ApiProperty()
     login: string;
 
     @Exclude()

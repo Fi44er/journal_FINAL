@@ -7,10 +7,18 @@ import { jwtPayload } from '../auth/interfaces/jwt-payload.interface';
 import { RolesGuard } from '../auth/guards/role.guard';
 import { Roles } from '@common/decorators';
 import { Role } from '@prisma/client';
+import { ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+
+
+@ApiTags('user')
 
 @Controller('user')
 export class UserController {
     constructor(private readonly userService: UserService) { }
+
+    @ApiOperation({ summary: 'Find one user by ID or login' })
+    @ApiParam({ name: 'idOrLogin', type: String })
+    @ApiResponse({ status: 200, description: 'OK', type: UserResponse })
 
     @UseInterceptors(ClassSerializerInterceptor)
     @Get(':idOrLogin')

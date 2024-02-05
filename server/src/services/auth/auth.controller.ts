@@ -3,20 +3,18 @@ import { RegisterUserDto } from './dto/register.dto';
 import { LogiUserDto } from './dto/login.dto';
 import { AuthService } from './auth.service';
 import { Tokens } from './interfaces/token.interface';
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { Cookie } from '@common/decorators/cookies.decorator';
 import { UserAgent } from '@common/decorators/user-agent.decorator';
 import { Public } from '@common/decorators/public.decorator';
 import { UserResponse } from '../user/responses/user.response';
-import { CurrentUser } from '@common/decorators/current-user.decorator';
-import { jwtPayload } from './interfaces/jwt-payload.interface';
-import { RolesGuard } from './guards/role.guard';
-import { Roles } from '@common/decorators';
-import { Role } from '@prisma/client';
+import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
+
 
 const REFRESH_TOKEN = 'refreshtoken'
 
+@ApiTags('auth')
 @Public()
 @Controller('auth')
 export class AuthController {
@@ -25,13 +23,24 @@ export class AuthController {
         private readonly configService: ConfigService
     ) { }
 
+    // ---------------------------- register -------------------------------- //
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Register a new user' })
+    @ApiParam({ name: 'dto', type: RegisterUserDto })
+    @ApiResponse({ status: 201, description: 'Created', type: UserResponse })
     @UseInterceptors(ClassSerializerInterceptor)
     @Post('register')
+
     async register(@Body() dto: RegisterUserDto) {
         const user = await this.authService.register(dto)
         if (!user) throw new BadRequestException('Не получается зарегестрировать пользователя с введенными данными')
         return new UserResponse(user)
     }
+
+    // ---------------------------- login -------------------------------- //
+    @ApiOperation({ summary: 'Login user' })
+    @ApiParam({ name: 'dto', type: LogiUserDto })
+    @ApiResponse({ status: 200, description: 'OK' })
 
     @Post('login')
     async login(@Body() dto: LogiUserDto, @Res() res: Response, @UserAgent() agent: string) {
@@ -41,6 +50,9 @@ export class AuthController {
         this.setRefreshTokenToCookie(tokens, res)
     }
 
+    // ---------------------------- logout -------------------------------- //
+    @ApiOperation({ summary: 'Logout user' })
+    @ApiResponse({ status: 200, description: 'OK' })
     @Get('logout')
     async logout(@Cookie(REFRESH_TOKEN) refreshToken: string, @Res() res: Response) {
         if (!refreshToken) return res.sendStatus(HttpStatus.OK)
@@ -70,5 +82,4 @@ export class AuthController {
         res.status(HttpStatus.CREATED).json({ accessToken: tokens.accessToken })
     }
 
-    // ------------------------------------------ Test Role------------------------------------------ //
 }
