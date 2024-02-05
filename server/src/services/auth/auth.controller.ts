@@ -71,11 +71,4 @@ export class AuthController {
     }
 
     // ------------------------------------------ Test Role------------------------------------------ //
-
-    @UseGuards(RolesGuard)
-    @Roles(Role.ADMIN)
-    @Get()
-    me(@CurrentUser() user: jwtPayload) {
-        return user
-    }
 }
