@@ -27,20 +27,15 @@ export class UserController {
         return new UserResponse(user)
     }
 
-    @Delete('delete-all-refresh')
-    async deleteAllRefresh() {
-        return await this.userService.removeAllRefresh()
-    }
-
     @Delete(':id')
     async deleteUser(@Param('id') id: number, @CurrentUser() user: jwtPayload) {
         return this.userService.delete(Number(id), user)
     }
 
-    @UseGuards(RolesGuard)
-    @Roles(Role.ADMIN)
-    @Get()
-    me(@CurrentUser() user: jwtPayload) {
-        return user
-    }
+    // @UseGuards(RolesGuard)
+    // @Roles(Role.ADMIN)
+    // @Get()
+    // me(@CurrentUser() user: jwtPayload) {
+    //     return user
+    // }
 }
