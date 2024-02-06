@@ -49,7 +49,7 @@ export class AuthService {
     // Если refresh токен есть в бд, удаляет его и генерирует новую пару accsess и refresh
     async refreshTokens(refreshToken: string, agent: string): Promise<Tokens> {
         const token = await this.prismaService.token.delete({ where: { token: refreshToken } })
-        if (!token) throw new UnauthorizedException()
+        if (!token || new Date(token.exp) < new Date()) throw new UnauthorizedException()
 
         const user = await this.userService.findOne(String(token.userId))
         return this.generateTokens(user, agent)
@@ -87,7 +87,7 @@ export class AuthService {
 
     // Удаление refresh токена
 
-    deleteRefreshTokeb(token: string) {
+    deleteRefreshToken(token: string) {
         return this.prismaService.token.delete({ where: { token } })
     }
 }
