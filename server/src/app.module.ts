@@ -7,9 +7,10 @@ import { APP_GUARD } from '@nestjs/core';
 import { JwtAuthGuard } from './services/auth/guards/jwt-auth.guard';
 import { AppService } from './app.service';
 import { AppController } from './app.controller';
+import { DevModule } from './services/dev/dev.module';
 
 @Module({
-  imports: [PrismaModule, UserModule, AuthModule, ConfigModule.forRoot({ isGlobal: true })],
+  imports: [PrismaModule, UserModule, AuthModule, DevModule , ConfigModule.forRoot({ isGlobal: true })],
   providers: [
     {
       provide: APP_GUARD,

@@ -40,10 +40,10 @@ model Token {
 
 // ---------------------- Class Table ----------------------
 model Class {
-  id           Int       @id @default(autoincrement())
-  number_class Int
-  letter_class String
-  Student      Student[]
+  id          Int       @id @default(autoincrement())
+  numberClass Int
+  letterClass String
+  Student     Student[]
 
   @@map("class")
 }
@@ -53,7 +53,7 @@ model Student {
   id      Int    @id @default(autoincrement())
   fio     String
   class   Class  @relation(fields: [classId], references: [id])
-  classId Int
+  classId Int    @map("class_id")
 
   @@map("student")
 }
@@ -72,7 +72,7 @@ model Subject {
 model Topic {
   id        Int      @id @default(autoincrement())
   subject   Subject  @relation(fields: [subjectId], references: [id])
-  subjectId Int
+  subjectId Int      @map("subject_id")
   name      String
   Lesson    Lesson[]
 
@@ -83,10 +83,10 @@ model Topic {
 model Lesson {
   id          Int           @id @default(autoincrement())
   topic       Topic         @relation(fields: [topicId], references: [id])
-  topicId     Int
+  topicId     Int           @map("topic_id")
   subject     Subject       @relation(fields: [subjectId], references: [id])
-  subjectId   Int
-  lesson_date DateTime
+  subjectId   Int           @map("subject_id")
+  lessonDate DateTime       @map("lesson_date")
   Performance Performance[]
 
   @@map("lesson")
@@ -95,12 +95,12 @@ model Lesson {
 // ---------------------- Perfomance Table ----------------------
 model Performance {
   id                Int    @id @default(autoincrement())
-  student_id        Int
+  studentId         Int    @map("student_id")
   user              User   @relation(fields: [teacherId], references: [id])
-  teacherId         Int
+  teacherId         Int    @map("teacher_id")
   lesson            Lesson @relation(fields: [lessonId], references: [id])
-  lessonId          Int
-  attendance_status Status
+  lessonId          Int    @map("lesson_id")
+  attendanceStatus Status
 
   @@map("performance")
 }

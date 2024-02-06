@@ -11,7 +11,7 @@ import { convertToSecondsUtil } from '@common/utils/convert-to-seconds';
 @Injectable()
 export class UserService {
     constructor(
-        private readonly consigService: ConfigService,
+        private readonly configService: ConfigService,
         private readonly prismaService: PrismaService,
         @Inject(CACHE_MANAGER) private cacheManager: Cache
     ) { }
@@ -45,7 +45,7 @@ export class UserService {
             if (!userByDb) return null
 
 
-            await this.cacheManager.set(idOrLogin, userByDb, convertToSecondsUtil(this.consigService.get('JWT_EXP')))
+            await this.cacheManager.set(idOrLogin, userByDb, convertToSecondsUtil(this.configService.get('JWT_EXP')))
             return userByDb
         }
         return user
