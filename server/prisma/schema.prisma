@@ -41,8 +41,8 @@ model Token {
 // ---------------------- Class Table ----------------------
 model Class {
   id          Int       @id @default(autoincrement())
-  numberClass Int
-  letterClass String
+  numberClass Int       @map("number_class")
+  letterClass String    @map("letter_class")
   Student     Student[]
 
   @@map("class")

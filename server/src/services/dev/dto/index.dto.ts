@@ -8,6 +8,10 @@ export class AddStudentDto {
     classId: number
 }
 
-export class AddClass {
-    
+export class AddClassDto {
+    @IsNumber()
+    numberClass: number
+
+    @IsString()
+    letterClass: string
 }
